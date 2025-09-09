@@ -1,31 +1,52 @@
+#!/usr/bin/env python3
 import hashlib
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
 import json
 import os
-import threading
-import undetected_chromedriver as uc
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+import argparse
 import requests
 import time
+import random
 from urllib.parse import urlencode
 import urllib.parse
-from Libs.device import Device
-from Libs.device_gen import Applog, Xlog
-from Libs.xgorgon import Gorgon
-from Libs.signature import ladon_encrypt, get_x_ss_stub
+import glob
+from datetime import datetime
 
+# Import the required libraries (assuming they're in the Libs directory)
+try:
+    from Libs.device import Device
+    from Libs.device_gen import Applog, Xlog
+    from Libs.xgorgon import Gorgon
+    from Libs.signature import ladon_encrypt, get_x_ss_stub
+    LIBS_AVAILABLE = True
+except ImportError:
+    print("Warning: Libs modules not found. Some features may not work.")
+    LIBS_AVAILABLE = False
 
+# Import Flask with error handling
+try:
+    from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+    FLASK_AVAILABLE = True
+except ImportError:
+    print("Error: Flask not installed. Please install it with: pip install flask")
+    FLASK_AVAILABLE = False
 
+# Initialize Flask app only if Flask is available
+if FLASK_AVAILABLE:
+    app = Flask(__name__)
+    app.secret_key = "tiktok_stream_key_generator_secret_key"
+else:
+    app = None
 
 class Stream:
-    def __init__(self):
+    def __init__(self, cookies_file):
         self.s = requests.session()
-        with open("cookies.json", "r") as file:
-            cookies_file = json.load(file)
+        if not os.path.exists(cookies_file):
+            raise FileNotFoundError(f"Cookies file not found: {cookies_file}")
+            
+        with open(cookies_file, "r") as file:
+            cookies_data = json.load(file)
         cookies = {}
-        for cookie in cookies_file:
+        for cookie in cookies_data:
             cookies[cookie["name"]] = cookie["value"]
         self.s.cookies.update(cookies)
         # self.renewCookies()
@@ -358,9 +379,7 @@ class Stream:
             self.streamShareUrl = streamInfo["data"]["share_url"]
             return True
         except KeyError:
-            messagebox.showerror(
-                "Error", streamInfo["data"]["prompts"]
-            )
+            print(f"Error: {streamInfo['data']['prompts']}")
             return False
 
     def endStream(self):
@@ -380,9 +399,7 @@ class Stream:
             params=params
         ).json()
         if "data" in streamInfo and "prompts" in streamInfo["data"]:
-            messagebox.showerror(
-                "Error", streamInfo["data"]["prompts"]
-            )
+            print(f"Error: {streamInfo['data']['prompts']}")
             return False
         return True
 
@@ -420,13 +437,7 @@ class Stream:
     def renewCookies(self):
         response = self.s.get("https://www.tiktok.com/foryou")
         if response.url == "https://www.tiktok.com/login/phone-or-email":
-            messagebox.showerror(
-                "Error", "Cookies are invalid. Please login again."
-            )
-            cookies_status.config(text="No cookies found")
-            go_live_button.config(state=tk.DISABLED)
-            login_button.config(state=tk.NORMAL)
-            os.remove("cookies.json")
+            print("Error: Cookies are invalid. Please login again.")
             return False
         else:
             new_cookies = []
@@ -443,198 +454,6 @@ class Stream:
             return True
 
 
-def save_config():
-    """Save entry values to a JSON file."""
-    if game_combobox.get() != "":
-        game_id = [
-            game for game in games
-            if games[game].lower() == game_combobox.get().lower()
-        ][0]
-    else:
-        game_id = ""
-    if topic_combobox.get() != "":
-        topic_id = [
-            topic for topic in topics
-            if topics[topic].lower() == topic_combobox.get().lower()
-        ][0]
-    else:
-        topic_id = ""
-
-    data = {
-        "title": title_entry.get(),
-        "game_tag_id": game_id,
-        "hashtag_id": topic_id,
-        "priority_region": region_entry.get(),
-        "generate_replay": replay_var.get(),
-        "spoof_plat": spoof_plat_var.get(),
-        "close_room_when_close_stream": close_room_var.get(),
-        "age_restricted": age_restricted_var.get(),
-        "openudid": openudid_entry.get(),
-        "device_id": device_id_entry.get(),
-        "iid": iid_entry.get()
-    }
-    with open("config.json", "w") as file:
-        json.dump(data, file)
-    messagebox.showinfo("Success", "Config saved successfully.")
-    return True
-
-
-def load_config():
-    """Load entry values from a JSON file."""
-    try:
-        with open("config.json", "r") as file:
-            data = json.load(file)
-        title_entry.delete(0, tk.END)
-        title_entry.insert(0, data.get("title", ""))
-        topic_combobox.set(topics.get(data.get("hashtag_id", ""), ""))
-        if topic_combobox.get() != "Gaming":
-            game_combobox.grid_remove()
-            game_label.grid_remove()
-        else:
-            game_combobox.set(games.get(data.get("game_tag_id", ""), ""))
-        region_entry.set(data.get("priority_region", ""))
-        replay_var.set(data.get("generate_replay", False))
-        spoof_plat_var.set(data.get("spoof_plat", 0))
-        openudid_entry.delete(0, tk.END)
-        openudid_entry.insert(0, data.get("openudid", ""))
-        device_id_entry.delete(0, tk.END)
-        device_id_entry.insert(0, data.get("device_id", ""))
-        iid_entry.delete(0, tk.END)
-        iid_entry.insert(0, data.get("iid", ""))
-        if spoof_plat_var.get() == 0:
-            spoofing_frame.grid_remove()
-        close_room_var.set(data.get("close_room_when_close_stream", True))
-        age_restricted_var.set(data.get("age_restricted", False))
-    except FileNotFoundError:
-        print("Error loading config file.")
-
-
-def check_cookies():
-    """Update the label based on the existence of cookies.json."""
-    if os.path.exists("cookies.json"):
-        cookies_status.config(text="Cookies are loaded")
-        go_live_button.config(state=tk.NORMAL)
-        login_button.config(state=tk.DISABLED)
-    else:
-        cookies_status.config(text="No cookies found")
-        go_live_button.config(state=tk.DISABLED)
-        login_button.config(state=tk.NORMAL)
-
-
-def wait_for_page_load(driver, timeout=30):
-    """Wait for the page's load state to be 'complete'."""
-    return WebDriverWait(driver, timeout).until(
-        lambda d: d.execute_script("return document.readyState") == "complete"
-    )
-
-
-def launch_browser():
-    """Launch Selenium to perform login and save cookies."""
-    driver = uc.Chrome()
-    driver.get("https://www.tiktok.com/login?is_modal=1&hide_toggle_login_signup=1&enter_method=live_studio&enter_from=live_studio&lang=en")
-    try:
-        WebDriverWait(driver, 60).until(
-            EC.url_contains("https://www.tiktok.com/foryou")
-        )
-        cookies = driver.get_cookies()
-        with open("cookies.json", "w") as file:
-            json.dump(cookies, file)
-        wait_for_page_load(driver)
-        driver.quit()
-        messagebox.showinfo(
-            "Login Status", "Login Successful and cookies saved!"
-        )
-    except Exception as e:
-        error_message = f"Login Failed or Timed Out.\n" \
-                        f"Error type: {type(e).__name__}, Message: {str(e)}"
-        messagebox.showinfo("Login Status", error_message)
-    finally:
-        driver.quit()
-        check_cookies()
-
-
-def enable_output_fields():
-    """Enable output fields after stream is generated."""
-    server_entry.config(state=tk.NORMAL)
-    key_entry.config(state=tk.NORMAL)
-    url_entry.config(state=tk.NORMAL)
-
-
-def disable_output_fields():
-    """Disable output fields when stream is not generated."""
-    server_entry.config(state=tk.DISABLED)
-    key_entry.config(state=tk.DISABLED)
-    url_entry.config(state=tk.DISABLED)
-
-
-def clear_output_fields():
-    """Clear output fields."""
-    server_entry.delete(0, tk.END)
-    key_entry.delete(0, tk.END)
-    url_entry.delete(0, tk.END)
-
-
-def end_stream():
-    """End the current stream."""
-    with Stream() as s:
-        ended = s.endStream()
-        if ended:
-            messagebox.showinfo("Success", "Stream ended successfully.")
-            enable_output_fields()
-            clear_output_fields()
-            disable_output_fields()
-
-
-def generate_stream():
-    """Function for stream key generation."""
-    if topic_combobox.get() != "":
-        hashtag_id = [
-            topic for topic in topics
-            if topics[topic].lower() == topic_combobox.get().lower()
-        ][0]
-    else:
-        messagebox.showerror("Error", "Please select a topic.")
-        return
-    if hashtag_id == "5" and game_combobox.get() == "":
-        messagebox.showerror("Error", "Please select a game tag.")
-        return
-    if hashtag_id != "5":
-        game_id = "0"
-    else:
-        game_id = [
-            game for game in games
-            if games[game].lower() == game_combobox.get().lower()
-        ][0]
-    with Stream() as s:
-        created = s.createStream(
-            title_entry.get(),
-            hashtag_id,
-            game_id,
-            replay_var.get(),
-            close_room_var.get(),
-            age_restricted_var.get(),
-            region_entry.get(),
-            spoof_plat_var.get(),
-            openudid_entry.get(),
-            device_id_entry.get(),
-            iid_entry.get(),
-            thumbnail_path_var.get()
-        )
-        if created:
-            messagebox.showinfo("Success", "Stream created successfully.")
-            enable_output_fields()
-            clear_output_fields()
-            server_entry.insert(0, s.baseStreamUrl)
-            key_entry.insert(0, s.streamKey)
-            url_entry.insert(0, s.streamShareUrl)
-            disable_output_fields()
-
-
-def login_thread():
-    """Handle the login process in a separate thread to keep UI responsive."""
-    threading.Thread(target=launch_browser).start()
-
-
 def fetch_game_tags():
     url = (
         "https://webcast16-normal-c-useast2a.tiktokv.com/webcast/"
@@ -649,56 +468,180 @@ def fetch_game_tags():
         return {}
 
 
-def update_combobox_options(event):
-    # Get current text in the combobox
-    current_text = game_combobox.get()
-    # Filter the games dictionary
-    filtered_options = [
-        name
-        for name in games.values()
-        if name.lower().startswith(current_text.lower())
-    ]
-    # Update the options displayed in the combobox
-    game_combobox["values"] = filtered_options
-
-
-def check_selection(event):
-    if topic_combobox.get() == "Gaming":
-        game_combobox.grid(row=2, column=1, padx=5, pady=2, sticky="ew")
-        game_label.grid(row=2, column=0, padx=5, pady=2, sticky="w")
-    else:
-        game_combobox.grid_remove()
-        game_label.grid_remove()
-
-
-def on_spoof_plat_change(*args):
-    selected_value = spoof_plat_var.get()
-    if selected_value == 0:
-        spoofing_frame.grid_remove()
-    else:
-        spoofing_frame.grid()
-
-def browse_image():
-    file_path = filedialog.askopenfilename(
-        title="Select a Image",
-        filetypes=[("PNG files", "*.png"), ("JPG files", "*.jpg"), ("JPEG files", "*.jpeg"), ("All files", "*.*")]
-    )
-    if file_path:
-        thumbnail_path_var.set(file_path)
-
 def generate_device():
+    if not LIBS_AVAILABLE:
+        print("Error: Libs modules not found. Cannot generate device.")
+        return None, None, None
+        
     device: dict = Device().create_device()
     device_id, install_id = Applog(device).register_device()
     Xlog(device_id).bypass()
-    openudid_entry.delete(0, tk.END)
-    openudid_entry.insert(0, device["openudid"])
-    device_id_entry.delete(0, tk.END)
-    device_id_entry.insert(0, device_id)
-    iid_entry.delete(0, tk.END)
-    iid_entry.insert(0, install_id)
+    return device["openudid"], device_id, install_id
 
 
+def find_cookies_files(cookies_dir="cookies"):
+    """Find all JSON files in the cookies directory."""
+    if not os.path.exists(cookies_dir):
+        print(f"Cookies directory '{cookies_dir}' not found.")
+        return []
+    
+    cookies_files = []
+    for file in os.listdir(cookies_dir):
+        if file.endswith('.json'):
+            cookies_files.append(os.path.join(cookies_dir, file))
+    
+    return sorted(cookies_files)
 
+
+def select_cookies_file(cookies_dir="cookies"):
+    """Interactive cookies file selection."""
+    cookies_files = find_cookies_files(cookies_dir)
+    
+    if not cookies_files:
+        print("No cookies files found.")
+        return None
+    
+    print("\nAvailable cookies files:")
+    for i, file_path in enumerate(cookies_files, 1):
+        file_name = os.path.basename(file_path)
+        print(f"{i}. {file_name}")
+    
+    while True:
+        try:
+            choice = input(f"\nSelect cookies file (1-{len(cookies_files)}) or 'q' to quit: ")
+            if choice.lower() == 'q':
+                return None
+            
+            choice = int(choice)
+            if 1 <= choice <= len(cookies_files):
+                return cookies_files[choice - 1]
+            else:
+                print(f"Please enter a number between 1 and {len(cookies_files)}")
+        except ValueError:
+            print("Please enter a valid number or 'q' to quit")
+
+
+def validate_cookies_file(file_path):
+    """Validate if the cookies file is properly formatted."""
+    try:
+        with open(file_path, 'r') as f:
+            cookies_data = json.load(f)
+        
+        if not isinstance(cookies_data, list):
+            print(f"Error: {file_path} is not a valid cookies file. Expected a list of cookies.")
+            return False
+        
+        required_fields = ['name', 'value']
+        for cookie in cookies_data:
+            if not isinstance(cookie, dict):
+                print(f"Error: Invalid cookie format in {file_path}")
+                return False
+            if not all(field in cookie for field in required_fields):
+                print(f"Error: Missing required fields in cookie from {file_path}")
+                return False
+        
+        return True
+    except json.JSONDecodeError:
+        print(f"Error: {file_path} is not a valid JSON file.")
+        return False
+    except Exception as e:
+        print(f"Error validating {file_path}: {e}")
+        return False
+
+
+def list_cookies_info(cookies_dir="cookies"):
+    """List information about available cookies files."""
+    cookies_files = find_cookies_files(cookies_dir)
+    
+    if not cookies_files:
+        print("No cookies files found.")
+        return
+    
+    print(f"\nCookies files in '{cookies_dir}' directory:")
+    print("-" * 50)
+    
+    for file_path in cookies_files:
+        file_name = os.path.basename(file_path)
+        file_size = os.path.getsize(file_path)
+        
+        try:
+            with open(file_path, 'r') as f:
+                cookies_data = json.load(f)
+            
+            if isinstance(cookies_data, list):
+                cookie_count = len(cookies_data)
+                domains = set()
+                for cookie in cookies_data:
+                    if 'domain' in cookie:
+                        domains.add(cookie['domain'])
+                
+                domain_str = ', '.join(sorted(domains)) if domains else 'No domain info'
+                print(f"📁 {file_name}")
+                print(f"   Size: {file_size} bytes")
+                print(f"   Cookies: {cookie_count}")
+                print(f"   Domains: {domain_str}")
+                print()
+            else:
+                print(f"📁 {file_name} (Invalid format)")
+                print(f"   Size: {file_size} bytes")
+                print()
+        except Exception as e:
+            print(f"📁 {file_name} (Error reading: {e})")
+            print()
+
+
+def save_last_used_cookies(cookies_file):
+    """Save the last used cookies file path for future reference."""
+    with open(".last_cookies", "w") as f:
+        f.write(cookies_file)
+
+def load_last_used_cookies():
+    """Load the last used cookies file path."""
+    try:
+        with open(".last_cookies", "r") as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
+
+
+def generate_title_from_file(file_path="tittle.txt"):
+    """Pick a random title from file and return it."""
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            titles = [line.strip() for line in f if line.strip()]
+        if not titles:
+            print(f"Error: {file_path} is empty.")
+            return None
+        return random.choice(titles)
+    except FileNotFoundError:
+        print(f"Error: {file_path} not found.")
+        return None
+    except Exception as e:
+        print(f"Failed to generate title: {e}")
+        return None
+
+
+def save_config(config_data, file_path="config.json"):
+    """Save configuration to a JSON file."""
+    with open(file_path, "w") as file:
+        json.dump(config_data, file)
+    print(f"Config saved successfully to {file_path}.")
+
+
+def load_config(file_path="config.json"):
+    """Load configuration from a JSON file."""
+    try:
+        with open(file_path, "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print(f"Config file {file_path} not found. Using defaults.")
+        return {}
+    except Exception as e:
+        print(f"Error loading config file: {e}")
+        return {}
+
+
+# Define topics
 topics = {
     "5": "Gaming",
     "6": "Music",
@@ -711,225 +654,559 @@ topics = {
     "45": "Education"
 }
 
+# Flask routes - only if Flask is available
+if FLASK_AVAILABLE and app:
+    @app.route('/')
+    def index():
+        """Main page with stream creation form"""
+        cookies_files = find_cookies_files()
+        game_tags = fetch_game_tags()
+        
+        return render_template('index.html', 
+                              topics=topics, 
+                              game_tags=game_tags,
+                              cookies_files=cookies_files,
+                              now={'year': time.strftime('%Y')})
 
-app = tk.Tk()
-app.title("TikTok Stream Key Generator")
-app.columnconfigure(0, weight=1)
-app.columnconfigure(1, weight=1)
-app.columnconfigure(2, weight=1)
+    @app.route('/create_stream', methods=['POST'])
+    def create_stream():
+        """Handle stream creation form submission"""
+        # Get form data
+        title = request.form.get('title')
+        hashtag_id = request.form.get('topic')
+        game_tag_id = request.form.get('game_tag', '0')
+        priority_region = request.form.get('region', '')
+        gen_replay = 'gen_replay' in request.form
+        close_room = 'close_room' in request.form
+        age_restricted = 'age_restricted' in request.form
+        spoof_plat = int(request.form.get('spoof_plat', '0'))
+        thumbnail_path = request.form.get('thumbnail', '')
+        cookies_file = request.form.get('cookies_file')
+        
+        # Validate required fields
+        if not title:
+            flash('Stream title is required', 'error')
+            return redirect(url_for('index'))
+        
+        if not hashtag_id:
+            flash('Stream topic is required', 'error')
+            return redirect(url_for('index'))
+        
+        # Check if game tag is required for gaming
+        if hashtag_id == "5" and not game_tag_id:
+            flash('Game tag is required for Gaming topic', 'error')
+            return redirect(url_for('index'))
+        
+        # Check if spoofing parameters are required
+        if spoof_plat in [1, 2]:
+            openudid = request.form.get('openudid', '')
+            device_id = request.form.get('device_id', '')
+            iid = request.form.get('iid', '')
+            
+            if not all([openudid, device_id, iid]):
+                flash('OpenUDID, Device ID, and IID are required for mobile spoofing', 'error')
+                return redirect(url_for('index'))
+        else:
+            openudid = ""
+            device_id = ""
+            iid = ""
+        
+        try:
+            with Stream(cookies_file) as s:
+                created = s.createStream(
+                    title,
+                    hashtag_id,
+                    game_tag_id,
+                    gen_replay,
+                    close_room,
+                    age_restricted,
+                    priority_region,
+                    spoof_plat,
+                    openudid,
+                    device_id,
+                    iid,
+                    thumbnail_path
+                )
+                
+                if created:
+                    # Save the cookies file for future use (like ending stream)
+                    save_last_used_cookies(cookies_file)
+                    
+                    # Prepare stream data for saving
+                    stream_data = {
+                        'title': title,
+                        'baseStreamUrl': s.baseStreamUrl,
+                        'streamKey': s.streamKey,
+                        'streamShareUrl': s.streamShareUrl,
+                        'hashtag_id': hashtag_id,
+                        'game_tag_id': game_tag_id,
+                        'priority_region': priority_region,
+                        'created_at': time.time()
+                    }
+                    
+                    # Save stream data
+                    stream_id = str(int(time.time()))
+                    file_path = f"stream_{stream_id}.json"
+                    with open(file_path, 'w') as f:
+                        json.dump(stream_data, f)
+                    
+                    return render_template('stream_created.html',
+                                          baseStreamUrl=s.baseStreamUrl,
+                                          streamKey=s.streamKey,
+                                          streamShareUrl=s.streamShareUrl,
+                                          title=title,
+                                          stream_id=stream_id,
+                                          now={'year': time.strftime('%Y')})
+                else:
+                    flash('Failed to create stream. Please check your settings and try again.', 'error')
+                    return redirect(url_for('index'))
+        except Exception as e:
+            flash(f'Error creating stream: {str(e)}', 'error')
+            return redirect(url_for('index'))
 
-# Using LabelFrames for better organization
-input_frame = ttk.LabelFrame(app, text="Input")
-input_frame.grid(row=0, column=0, padx=10, pady=5, sticky="nsew")
-input_frame.columnconfigure(0, weight=1)
+    @app.route('/end_stream', methods=['POST'])
+    def end_stream():
+        """End the current stream"""
+        cookies_file = load_last_used_cookies()
+        
+        if not cookies_file:
+            flash('No active stream found or cookies file missing', 'error')
+            return redirect(url_for('index'))
+        
+        try:
+            with Stream(cookies_file) as s:
+                if s.endStream():
+                    flash('Stream ended successfully', 'success')
+                else:
+                    flash('Failed to end stream', 'error')
+        except Exception as e:
+            flash(f'Error ending stream: {str(e)}', 'error')
+        
+        return redirect(url_for('index'))
 
-# Input fields and labels inside the LabelFrame
-title_label = ttk.Label(input_frame, text="Title")
-title_label.grid(row=0, column=0, padx=5, pady=2, sticky="w")
+    @app.route('/generate_device')
+    def generate_device_route():
+        """Generate device info for spoofing"""
+        openudid, device_id, iid = generate_device()
+        
+        if openudid:
+            return jsonify({
+                'openudid': openudid,
+                'device_id': device_id,
+                'iid': iid
+            })
+        else:
+            return jsonify({'error': 'Failed to generate device info'}), 500
 
-title_entry = ttk.Entry(input_frame)
-title_entry.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
+    @app.route('/list_cookies')
+    def list_cookies_route():
+        """List available cookies files"""
+        cookies_files = find_cookies_files()
+        cookies_info = []
+        
+        for file_path in cookies_files:
+            file_name = os.path.basename(file_path)
+            file_size = os.path.getsize(file_path)
+            
+            try:
+                with open(file_path, 'r') as f:
+                    cookies_data = json.load(f)
+                
+                if isinstance(cookies_data, list):
+                    cookie_count = len(cookies_data)
+                    domains = set()
+                    for cookie in cookies_data:
+                        if 'domain' in cookie:
+                            domains.add(cookie['domain'])
+                    
+                    domain_str = ', '.join(sorted(domains)) if domains else 'No domain info'
+                    cookies_info.append({
+                        'file_name': file_name,
+                        'file_path': file_path,
+                        'file_size': file_size,
+                        'cookie_count': cookie_count,
+                        'domains': domain_str
+                    })
+            except Exception as e:
+                cookies_info.append({
+                    'file_name': file_name,
+                    'file_path': file_path,
+                    'file_size': file_size,
+                    'error': str(e)
+                })
+        
+        return render_template('cookies_list.html', cookies_info=cookies_info, now={'year': time.strftime('%Y')})
 
-topic_label = ttk.Label(input_frame, text="Topic")
-topic_label.grid(row=1, column=0, padx=5, pady=2, sticky="w")
+    @app.route('/random_title')
+    def random_title():
+        """Generate a random title from file"""
+        file_path = request.args.get('file', 'tittle.txt')
+        title = generate_title_from_file(file_path)
+        
+        if title:
+            return jsonify({'title': title})
+        else:
+            return jsonify({'error': 'Failed to generate title'}), 500
 
-topic_combobox = ttk.Combobox(input_frame, values=list(topics.values()))
-topic_combobox.grid(row=1, column=1, padx=5, pady=2, sticky="ew")
-topic_combobox.bind('<<ComboboxSelected>>', check_selection)
+    @app.route('/streams')
+    def streams_list():
+        """Display list of streams with RTMP and stream key information"""
+        streams = []
+        
+        # Cari file stream yang tersimpan (misalnya dalam format JSON)
+        stream_files = glob.glob("stream_*.json")
+        
+        for file_path in stream_files:
+            try:
+                with open(file_path, 'r') as f:
+                    stream_data = json.load(f)
+                    
+                # Ekstrak informasi file
+                file_name = os.path.basename(file_path)
+                created_time = os.path.getctime(file_path)
+                created_date = datetime.fromtimestamp(created_time).strftime('%Y-%m-%d %H:%M:%S')
+                
+                # Tambahkan ke list streams
+                streams.append({
+                    'id': file_name.replace('stream_', '').replace('.json', ''),
+                    'title': stream_data.get('title', 'Unknown'),
+                    'baseStreamUrl': stream_data.get('baseStreamUrl', ''),
+                    'streamKey': stream_data.get('streamKey', ''),
+                    'streamShareUrl': stream_data.get('streamShareUrl', ''),
+                    'created_date': created_date,
+                    'file_path': file_path
+                })
+            except Exception as e:
+                print(f"Error reading stream file {file_path}: {e}")
+        
+        return render_template('streams_list.html', streams=streams, now={'year': time.strftime('%Y')})
 
-game_combobox = ttk.Combobox(input_frame)
+    @app.route('/delete_stream/<stream_id>', methods=['POST'])
+    def delete_stream(stream_id):
+        """Delete a stream"""
+        file_path = f"stream_{stream_id}.json"
+        
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                return jsonify({
+                    'success': True,
+                    'message': 'Stream deleted successfully'
+                })
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Stream not found'
+                }), 404
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
 
-game_label = ttk.Label(input_frame, text="Game")
-game_label.grid(row=2, column=0, padx=5, pady=2, sticky="w")
+def main():
+    # Create command line parser
+    parser = argparse.ArgumentParser(description="TikTok Stream Key Generator (CLI Version)")
+    
+    # Add arguments
+    parser.add_argument("--title", type=str, help="Stream title")
+    parser.add_argument("--topic", type=str, help=f"Stream topic. Options: {', '.join(topics.values())}")
+    parser.add_argument("--game", type=str, help="Game tag (required if topic is Gaming)")
+    parser.add_argument("--region", type=str, help="Priority region (e.g., US, ID, etc.)")
+    parser.add_argument("--replay", action="store_true", help="Generate replay after stream ends")
+    parser.add_argument("--close-room", action="store_true", default=True, help="Close room when stream ends")
+    parser.add_argument("--age-restricted", action="store_true", help="Mark stream as age restricted")
+    parser.add_argument("--spoof-plat", type=int, choices=[0, 1, 2], default=0, 
+                        help="Platform spoofing: 0=None, 1=Mobile Camera, 2=Mobile Screenshare")
+    parser.add_argument("--thumbnail", type=str, help="Path to thumbnail image")
+    parser.add_argument("--cookies-dir", type=str, default="cookies", help="Directory containing cookies files (default: cookies)")
+    parser.add_argument("--config", type=str, default="config.json", help="Path to config JSON file")
+    parser.add_argument("--save-config", action="store_true", help="Save current settings to config file")
+    parser.add_argument("--end-stream", action="store_true", help="End current stream")
+    parser.add_argument("--list-games", action="store_true", help="List available game tags")
+    parser.add_argument("--list-cookies", action="store_true", help="List available cookies files")
+    parser.add_argument("--select-cookies", action="store_true", help="Interactively select cookies file")
+    parser.add_argument("--random-title", type=str, help="Generate random title from specified file")
+    parser.add_argument("--generate-device", action="store_true", help="Generate device info for spoofing")
+    parser.add_argument("--no-select", action="store_true", help="Skip account selection and use first valid cookies")
+    parser.add_argument("--web", action="store_true", help="Run as web application")
+    parser.add_argument("--port", type=int, default=5000, help="Port for web application")
+    
+    # Spoofing arguments
+    parser.add_argument("--openudid", type=str, help="OpenUDID for mobile spoofing")
+    parser.add_argument("--device-id", type=str, help="Device ID for mobile spoofing")
+    parser.add_argument("--iid", type=str, help="Install ID for mobile spoofing")
+    
+    args = parser.parse_args()
+    
+    # Handle web mode
+    if args.web:
+        if not FLASK_AVAILABLE:
+            print("Error: Flask is not installed. Please install it with: pip install flask")
+            return
+            
+        # Create templates directory if it doesn't exist
+        if not os.path.exists('templates'):
+            os.makedirs('templates')
+        
+        # Check if template files exist
+        required_templates = ['index.html', 'stream_created.html', 'cookies_list.html', 'streams_list.html']
+        for template in required_templates:
+            if not os.path.exists(f'templates/{template}'):
+                print(f"Error: templates/{template} not found. Please make sure the template files are in the correct location.")
+                return
+        
+        app.run(host='0.0.0.0', port=args.port, debug=True)
+        return
+    
+    # Handle special commands
+    if args.list_games:
+        games = fetch_game_tags()
+        print("Available game tags:")
+        for game_id, game_name in games.items():
+            print(f"{game_id}: {game_name}")
+        return
+    
+    if args.list_cookies:
+        list_cookies_info(args.cookies_dir)
+        return
+    
+    if args.select_cookies:
+        selected_cookies = select_cookies_file(args.cookies_dir)
+        if selected_cookies:
+            if validate_cookies_file(selected_cookies):
+                print(f"Selected cookies file: {selected_cookies}")
+                # Copy selected cookies to default location for easier use
+                import shutil
+                shutil.copy2(selected_cookies, "cookies.json")
+                print("Cookies file copied to cookies.json for future use.")
+            else:
+                print("Selected cookies file is invalid.")
+        return
+    
+    if args.generate_device:
+        openudid, device_id, iid = generate_device()
+        if openudid:
+            print(f"Generated device info:")
+            print(f"OpenUDID: {openudid}")
+            print(f"Device ID: {device_id}")
+            print(f"IID: {iid}")
+        return
+    
+    if args.end_stream:
+        # Try to load the last used cookies file first
+        cookies_file = load_last_used_cookies()
+        
+        if not cookies_file:
+            # If no last used cookies, find the first valid cookies file
+            cookies_files = find_cookies_files(args.cookies_dir)
+            
+            if cookies_files:
+                for file_path in cookies_files:
+                    if validate_cookies_file(file_path):
+                        cookies_file = file_path
+                        break
+        
+        if not cookies_file:
+            print("No valid cookies files found.")
+            return
+        
+        account_name = os.path.basename(cookies_file).replace('.json', '')
+        print(f"Using account: {account_name}")
+        print(f"Cookies file: {cookies_file}")
+        
+        try:
+            with Stream(cookies_file) as s:
+                if s.endStream():
+                    print("Stream ended successfully.")
+                else:
+                    print("Failed to end stream.")
+        except Exception as e:
+            print(f"Error ending stream: {e}")
+        return
+    
+    # Load config if it exists
+    config = load_config(args.config)
+    
+    # Override config with command line arguments
+    if args.title:
+        config["title"] = args.title
+    elif args.random_title:
+        title = generate_title_from_file(args.random_title)
+        if title:
+            config["title"] = title
+            print(f"Generated title: {title}")
+    
+    if args.topic:
+        # Find topic ID from topic name
+        topic_id = None
+        for tid, tname in topics.items():
+            if tname.lower() == args.topic.lower():
+                topic_id = tid
+                break
+        if topic_id:
+            config["hashtag_id"] = topic_id
+        else:
+            print(f"Error: Invalid topic '{args.topic}'. Valid options are: {', '.join(topics.values())}")
+            return
+    
+    if args.game:
+        games = fetch_game_tags()
+        game_id = None
+        for gid, gname in games.items():
+            if gname.lower() == args.game.lower():
+                game_id = gid
+                break
+        if game_id:
+            config["game_tag_id"] = game_id
+        else:
+            print(f"Error: Invalid game '{args.game}'. Use --list-games to see available games.")
+            return
+    
+    if args.region:
+        config["priority_region"] = args.region
+    
+    if args.replay:
+        config["generate_replay"] = True
+    
+    if not args.close_room:
+        config["close_room_when_close_stream"] = False
+    
+    if args.age_restricted:
+        config["age_restricted"] = True
+    
+    if args.spoof_plat:
+        config["spoof_plat"] = args.spoof_plat
+    
+    if args.thumbnail:
+        config["thumbnail_path"] = args.thumbnail
+    
+    if args.openudid:
+        config["openudid"] = args.openudid
+    
+    if args.device_id:
+        config["device_id"] = args.device_id
+    
+    if args.iid:
+        config["iid"] = args.iid
+    
+    # Save config if requested
+    if args.save_config:
+        save_config(config, args.config)
+    
+    # Check required parameters
+    if "title" not in config or not config["title"]:
+        print("Error: Stream title is required. Use --title or --random-title.")
+        return
+    
+    if "hashtag_id" not in config or not config["hashtag_id"]:
+        print("Error: Stream topic is required. Use --topic.")
+        return
+    
+    # Check if game tag is required for gaming
+    if config["hashtag_id"] == "5" and ("game_tag_id" not in config or not config["game_tag_id"]):
+        print("Error: Game tag is required for Gaming topic. Use --game.")
+        return
+    
+    # Check if spoofing parameters are required
+    if config.get("spoof_plat", 0) in [1, 2]:
+        if not all(k in config for k in ["openudid", "device_id", "iid"]):
+            print("Error: OpenUDID, Device ID, and IID are required for mobile spoofing.")
+            print("Use --generate-device to generate these values or provide them manually.")
+            return
+    
+    # Get cookies file
+    cookies_files = find_cookies_files(args.cookies_dir)
+    cookies_file = None
+    
+    if not cookies_files:
+        print("No cookies files found.")
+        return
+    
+    # If there are multiple cookies files and no --no-select flag, let user choose
+    if len(cookies_files) == 1 or args.no_select:
+        # Only one cookies file or --no-select flag, use first valid automatically
+        for file_path in cookies_files:
+            if validate_cookies_file(file_path):
+                cookies_file = file_path
+                break
+    else:
+        # Multiple cookies files, show selection menu
+        print("Available accounts:")
+        valid_cookies = []
+        for i, file_path in enumerate(cookies_files, 1):
+            if validate_cookies_file(file_path):
+                valid_cookies.append(file_path)
+                file_name = os.path.basename(file_path)
+                # Try to extract account name from filename
+                account_name = file_name.replace('.json', '')
+                # Remove "cookies/" prefix if present
+                if account_name.startswith('cookies/'):
+                    account_name = account_name[8:]
+                print(f"{i}. {account_name}")
+        
+        if not valid_cookies:
+            print("No valid cookies files found.")
+            return
+        
+        while True:
+            try:
+                choice = input(f"\nSelect account (1-{len(valid_cookies)}) or 'q' to quit: ")
+                if choice.lower() == 'q':
+                    return
+                
+                choice = int(choice)
+                if 1 <= choice <= len(valid_cookies):
+                    cookies_file = valid_cookies[choice - 1]
+                    break
+                else:
+                    print(f"Please enter a number between 1 and {len(valid_cookies)}")
+            except ValueError:
+                print("Please enter a valid number or 'q' to quit")
+    
+    if not cookies_file:
+        print("No valid cookies files found.")
+        return
+    
+    account_name = os.path.basename(cookies_file).replace('.json', '')
+    print(f"Using account: {account_name}")
+    print(f"Cookies file: {cookies_file}")
+    
+    # Save the cookies file for future use (like ending stream)
+    save_last_used_cookies(cookies_file)
+    
+    # Create stream
+    try:
+        with Stream(cookies_file) as s:
+            created = s.createStream(
+                config.get("title", ""),
+                config.get("hashtag_id", ""),
+                config.get("game_tag_id", "0"),
+                config.get("generate_replay", False),
+                config.get("close_room_when_close_stream", True),
+                config.get("age_restricted", False),
+                config.get("priority_region", ""),
+                config.get("spoof_plat", 0),
+                config.get("openudid", ""),
+                config.get("device_id", ""),
+                config.get("iid", ""),
+                config.get("thumbnail_path", "")
+            )
+            
+            if created:
+                print("Stream created successfully!")
+                print(f"Server URL: {s.baseStreamUrl}")
+                print(f"Stream Key: {s.streamKey}")
+                print(f"Share URL: {s.streamShareUrl}")
+                print("\nRTMP URL:")
+                print(f"{s.baseStreamUrl}/{s.streamKey}")
+            else:
+                print("Failed to create stream.")
+    except Exception as e:
+        print(f"Error creating stream: {e}")
 
-games = fetch_game_tags()
-game_combobox = ttk.Combobox(input_frame, values=list(games.values()))
-game_combobox.grid(row=2, column=1, padx=5, pady=2, sticky="ew")
-game_combobox.bind("<KeyRelease>", update_combobox_options)
 
-region_label = ttk.Label(input_frame, text="Region")
-region_label.grid(row=3, column=0, padx=5, pady=2, sticky="w")
+if __name__ == "__main__":
+    main()
 
-region_entry = ttk.Combobox(
-    input_frame,
-    values=[
-        "", "af", "ax", "al", "dz", "as", "ad", "ao", "ai", "aq", "ag", "ar", "am", "aw", "au",
-        "at", "az", "bs", "bh", "bd", "bb", "by", "be", "bz", "bj", "bm", "bt", "bo", "bq",
-        "ba", "bw", "bv", "br", "io", "bn", "bg", "bf", "bi", "cv", "kh", "cm", "ca", "ky",
-        "cf", "td", "cl", "cn", "cx", "cc", "co", "km", "cg", "cd", "ck", "cr", "ci", "hr",
-        "cu", "cw", "cy", "cz", "dk", "dj", "dm", "do", "ec", "eg", "sv", "gq", "er", "ee",
-        "sz", "et", "fk", "fo", "fj", "fi", "fr", "gf", "pf", "tf", "ga", "gm", "ge", "de",
-        "gh", "gi", "gr", "gl", "gd", "gp", "gu", "gt", "gg", "gn", "gw", "gy", "ht", "hm",
-        "va", "hn", "hk", "hu", "is", "in", "id", "ir", "iq", "ie", "im", "il", "it", "jm",
-        "jp", "je", "jo", "kz", "ke", "ki", "kp", "kr", "kw", "kg", "la", "lv", "lb", "ls",
-        "lr", "ly", "li", "lt", "lu", "mo", "mg", "mw", "my", "mv", "ml", "mt", "mh", "mq",
-        "mr", "mu", "yt", "mx", "fm", "md", "mc", "mn", "me", "ms", "ma", "mz", "mm", "na",
-        "nr", "np", "nl", "nc", "nz", "ni", "ne", "ng", "nu", "nf", "mk", "mp", "no", "om",
-        "pk", "pw", "ps", "pa", "pg", "py", "pe", "ph", "pn", "pl", "pt", "pr", "qa", "re",
-        "ro", "ru", "rw", "bl", "sh", "kn", "lc", "mf", "pm", "vc", "ws", "sm", "st", "sa",
-        "sn", "rs", "sc", "sl", "sg", "sx", "sk", "si", "sb", "so", "za", "gs", "ss", "es",
-        "lk", "sd", "sr", "sj", "se", "ch", "sy", "tw", "tj", "tz", "th", "tl", "tg", "tk",
-        "to", "tt", "tn", "tr", "tm", "tc", "tv", "ug", "ua", "ae", "gb", "um", "us", "uy",
-        "uz", "vu", "ve", "vn", "vg", "vi", "wf", "eh", "ye", "zm", "zw"
-    ],
-)
-region_entry.grid(row=3, column=1, padx=5, pady=2, sticky="ew")
-
-
-spoof_plat_var = tk.IntVar()
-spoof_plat_var.set(0)
-spoof_plat_var.trace_add("write", on_spoof_plat_change)
-spoof_plat_radio1 = ttk.Radiobutton(
-    input_frame, text="No Spoofing", variable=spoof_plat_var, value=0
-)
-spoof_plat_radio1.grid(row=4, column=0, columnspan=1, padx=5, pady=2, sticky="w")
-
-spoof_plat_radio2 = ttk.Radiobutton(
-    input_frame, text="Mobile Camera Stream (gets no traffic)", variable=spoof_plat_var, value=1
-)
-spoof_plat_radio2.grid(row=4, column=1, columnspan=1, padx=5, pady=2, sticky="w")
-
-spoof_plat_radio3 = ttk.Radiobutton(
-    input_frame, text="Mobile Screenshare (gets no traffic)", variable=spoof_plat_var, value=2
-)
-spoof_plat_radio3.grid(row=4, column=2, columnspan=1, padx=5, pady=2, sticky="w")
-
-replay_var = tk.BooleanVar()
-replay_checkbox = ttk.Checkbutton(
-    input_frame, text="Generate Replay", variable=replay_var
-)
-replay_checkbox.grid(row=5, column=0, columnspan=2, padx=5, pady=2, sticky="w")
-
-close_room_var = tk.BooleanVar(value=True)
-close_room_checkbox = ttk.Checkbutton(
-    input_frame, text="Close Room When Close Stream", variable=close_room_var
-)
-close_room_checkbox.grid(
-    row=6, column=0, columnspan=2, padx=5, pady=2, sticky="w"
-)
-
-age_restricted_var = tk.BooleanVar()
-age_restricted_checkbox = ttk.Checkbutton(
-    input_frame, text="Age Restricted", variable=age_restricted_var
-)
-age_restricted_checkbox.grid(
-    row=7, column=0, columnspan=2, padx=5, pady=2, sticky="w"
-)
-
-# File input
-thumbnail_path_var = tk.StringVar()
-
-thumbnail_label = ttk.Label(input_frame, text="Selected Thumbnail:")
-thumbnail_label.grid(row=8, column=0, padx=5, pady=5, sticky="w")
-
-thumbnail_entry = ttk.Entry(input_frame, textvariable=thumbnail_path_var, width=50)
-thumbnail_entry.grid(row=8, column=1, padx=5, pady=5, sticky="ew")
-
-browse_button = ttk.Button(input_frame, text="Browse", command=browse_image)
-browse_button.grid(row=8, column=2, padx=5, pady=5, sticky="ew")
-
-# Using LabelFrames for better organization
-spoofing_frame = ttk.LabelFrame(app, text="Spoofing Info")
-spoofing_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
-spoofing_frame.columnconfigure(1, weight=1)
-spoofing_frame.grid_remove()
-
-# Additional fields for Mobile Camera Stream and Mobile Screenshare
-openudid_label = ttk.Label(spoofing_frame, text="OpenUDID")
-openudid_label.grid(row=0, column=0, padx=5, pady=2, sticky="w")
-
-openudid_entry = ttk.Entry(spoofing_frame)
-openudid_entry.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
-
-device_id_label = ttk.Label(spoofing_frame, text="Device ID")
-device_id_label.grid(row=1, column=0, padx=5, pady=2, sticky="w")
-
-device_id_entry = ttk.Entry(spoofing_frame)
-device_id_entry.grid(row=1, column=1, padx=5, pady=2, sticky="ew")
-
-iid_label = ttk.Label(spoofing_frame, text="IID")
-iid_label.grid(row=2, column=0, padx=5, pady=2, sticky="w")
-
-iid_entry = ttk.Entry(spoofing_frame)
-iid_entry.grid(row=2, column=1, padx=5, pady=2, sticky="ew")
-
-create_device_button = ttk.Button(
-    spoofing_frame, text="Generate Device", command=generate_device
-)
-create_device_button.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
-
-
-cookies_frame = ttk.LabelFrame(app, text="Cookies Info")
-cookies_frame.grid(row=2, column=0, padx=10, pady=5, sticky="nsew")
-cookies_frame.columnconfigure(1, weight=1)
-
-# Cookies status
-cookies_status = ttk.Label(cookies_frame, text="Checking cookies...")
-cookies_status.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-
-# Buttons
-login_button = ttk.Button(
-    app, text="Login", command=login_thread, state=tk.DISABLED
-)
-login_button.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
-
-go_live_button = ttk.Button(
-    app, text="Go Live", command=generate_stream, state=tk.DISABLED
-)
-go_live_button.grid(row=4, column=0, padx=10, pady=5, sticky="ew")
-
-end_live_button = ttk.Button(
-    app, text="End Live", command=end_stream
-)
-end_live_button.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
-
-save_config_button = ttk.Button(app, text="Save Config", command=save_config)
-save_config_button.grid(row=6, column=0, padx=10, pady=5, sticky="ew")
-
-# Outputs
-output_frame = ttk.LabelFrame(app, text="Outputs")
-output_frame.grid(row=0, column=1, rowspan=5, padx=10, pady=5, sticky="nsew")
-output_frame.columnconfigure(0, weight=1)
-
-server_entry = ttk.Entry(output_frame, state="readonly")
-server_entry.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
-
-key_entry = ttk.Entry(output_frame, state="readonly")
-key_entry.grid(row=1, column=0, padx=5, pady=2, sticky="ew")
-
-url_entry = ttk.Entry(output_frame, state="readonly")
-url_entry.grid(row=2, column=0, padx=5, pady=2, sticky="ew")
-
-
-def copy_to_clipboard(content):
-    app.clipboard_clear()
-    app.clipboard_append(content)
-    messagebox.showinfo("Copied", "Content copied to clipboard!")
-
-
-# Copy buttons for each Entry
-copy_server_button = ttk.Button(
-    output_frame,
-    text="Copy",
-    command=lambda: copy_to_clipboard(server_entry.get()),
-)
-copy_server_button.grid(row=0, column=1, padx=5, pady=2)
-
-copy_key_button = ttk.Button(
-    output_frame,
-    text="Copy",
-    command=lambda: copy_to_clipboard(key_entry.get()),
-)
-copy_key_button.grid(row=1, column=1, padx=5, pady=2)
-
-copy_url_button = ttk.Button(
-    output_frame,
-    text="Copy",
-    command=lambda: copy_to_clipboard(url_entry.get()),
-)
-copy_url_button.grid(row=2, column=1, padx=5, pady=2)
-
-check_cookies()
-load_config()
-
-app.mainloop()
+app.run(host='0.0.0.0', port=5000, debug=True)

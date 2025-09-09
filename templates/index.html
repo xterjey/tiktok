@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Stream Key Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'tiktok': '#FE2C55',
+                        'dark-blue': '#0a0e27',
+                        'medium-blue': '#1a237e',
+                        'light-blue': '#3b82f6',
+                        'deep-blue': '#0d47a1',
+                        'navy-blue': '#000051',
+                        'black': '#000000',
+                        'charcoal': '#121212',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a237e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        
+        /* Light mode scrollbar - now dark theme */
+        .light ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+        .light ::-webkit-scrollbar-thumb {
+            background: #0d47a1;
+        }
+        .light ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Glass effect */
+        .glass {
+            background: rgba(10, 14, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 80, 0.37);
+        }
+        
+        /* Light mode glass effect - now dark theme */
+        .light .glass {
+            background: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(13, 71, 161, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #FE2C55);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* Button hover effect */
+        .btn-gradient {
+            background: linear-gradient(135deg, #1a237e, #3b82f6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #3b82f6, #FE2C55);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Light mode button */
+        .light .btn-gradient {
+            background: linear-gradient(135deg, #0d47a1, #3b82f6);
+        }
+        .light .btn-gradient:hover {
+            background: linear-gradient(135deg, #3b82f6, #FE2C55);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-dark-blue via-medium-blue to-navy-blue min-h-screen text-white transition-all duration-500">
+    <!-- Background Pattern -->
+    <div class="fixed inset-0 opacity-10">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+    </div>
+    
+    <!-- Light mode background - now black and blue -->
+    <div class="fixed inset-0 bg-gradient-to-br from-black via-deep-blue to-dark-blue opacity-0 dark:opacity-0 light:opacity-100 transition-opacity duration-500"></div>
+    
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50 border-b border-blue-500/20 dark:border-blue-500/20 light:border-blue-700/30 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-light-blue to-tiktok flex items-center justify-center shadow-lg">
+                        <i class="fas fa-broadcast-tower text-white"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold gradient-text">TikTok Stream Generator</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/streams" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 light:bg-blue-900/50 light:hover:bg-blue-800/50 transition-all duration-300 flex items-center space-x-2 shadow-sm">
+                        <i class="fas fa-list dark:text-white light:text-blue-200"></i>
+                        <span class="dark:text-white light:text-blue-200 font-medium">My Streams</span>
+                    </a>
+                    <button id="darkModeToggle" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 dark:bg-white/10 dark:hover:bg-white/20 light:bg-blue-900/50 light:hover:bg-blue-800/50 transition-all duration-300 shadow-sm">
+                        <i id="darkModeIcon" class="fas fa-moon dark:text-white light:text-blue-200"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 relative z-10">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 fade-in">
+                    {% for category, message in messages %}
+                        <div class="glass rounded-lg p-4 {% if category == 'error' %}border-red-500/50{% else %}border-green-500/50{% endif %} flex items-center space-x-3 shadow-lg">
+                            <i class="fas {% if category == 'error' %}fa-exclamation-circle text-red-400{% else %}fa-check-circle text-green-400{% endif %} text-xl"></i>
+                            <p class="dark:text-white light:text-blue-200">{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Main Card -->
+        <div class="max-w-6xl mx-auto">
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Left Column - Form -->
+                <div class="fade-in">
+                    <div class="glass rounded-2xl p-8 shadow-2xl">
+                        <h2 class="text-3xl font-bold mb-2 dark:text-white light:text-blue-200">Create New Stream</h2>
+                        <p class="dark:text-blue-200 light:text-blue-300 mb-8">Set up your TikTok live stream with advanced options</p>
+                        
+                        <form action="/create_stream" method="post" enctype="multipart/form-data" class="space-y-6">
+                            <!-- Stream Title -->
+                            <div>
+                                <label for="title" class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-2">
+                                    <i class="fas fa-heading mr-2 text-light-blue"></i>Stream Title
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="title" name="title" required
+                                           class="w-full px-4 py-3 rounded-lg dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:focus:ring-light-blue/50 dark:text-white dark:placeholder-blue-400 light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:focus:ring-light-blue/50 light:text-blue-200 light:placeholder-blue-500 border focus:ring-2 transition-all duration-300 shadow-sm"
+                                           placeholder="Enter your stream title">
+                                    <button type="button" id="randomTitleLink" class="absolute right-3 top-3 dark:text-blue-400 light:text-blue-500 hover:dark:text-white hover:light:text-blue-200 transition-colors">
+                                        <i class="fas fa-dice"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Topic Selection -->
+                            <div>
+                                <label for="topic" class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-2">
+                                    <i class="fas fa-tag mr-2 text-light-blue"></i>Stream Topic
+                                </label>
+                                <select id="topic" name="topic" required
+                                        class="w-full px-4 py-3 rounded-lg dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:focus:ring-light-blue/50 dark:text-white light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:focus:ring-light-blue/50 light:text-blue-200 border focus:ring-2 transition-all duration-300 shadow-sm">
+                                    <option value="">Select a topic</option>
+                                    {% for id, name in topics.items() %}
+                                        <option value="{{ id }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Game Tag (Hidden by default) -->
+                            <div id="gameTagContainer" class="hidden">
+                                <label for="game_tag" class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-2">
+                                    <i class="fas fa-gamepad mr-2 text-light-blue"></i>Game Tag
+                                </label>
+                                <select id="game_tag" name="game_tag"
+                                        class="w-full px-4 py-3 rounded-lg dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:focus:ring-light-blue/50 dark:text-white light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:focus:ring-light-blue/50 light:text-blue-200 border focus:ring-2 transition-all duration-300 shadow-sm">
+                                    <option value="">Select a game</option>
+                                    {% for id, name in game_tags.items() %}
+                                        <option value="{{ id }}">{{ name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Priority Region -->
+                            <div>
+                                <label for="region" class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-2">
+                                    <i class="fas fa-globe mr-2 text-light-blue"></i>Priority Region
+                                </label>
+                                <input type="text" id="region" name="region"
+                                       class="w-full px-4 py-3 rounded-lg dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:focus:ring-light-blue/50 dark:text-white dark:placeholder-blue-400 light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:focus:ring-light-blue/50 light:text-blue-200 light:placeholder-blue-500 border focus:ring-2 transition-all duration-300 shadow-sm"
+                                       placeholder="e.g., US, ID, etc.">
+                            </div>
+                            
+                            <!-- Cookies File -->
+                            <div>
+                                <label for="cookies_file" class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-2">
+                                    <i class="fas fa-cookie-bite mr-2 text-light-blue"></i>Cookies File
+                                </label>
+                                <select id="cookies_file" name="cookies_file" required
+                                        class="w-full px-4 py-3 rounded-lg dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:focus:ring-light-blue/50 dark:text-white light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:focus:ring-light-blue/50 light:text-blue-200 border focus:ring-2 transition-all duration-300 shadow-sm">
+                                    <option value="">Select a cookies file</option>
+                                    {% for file in cookies_files %}
+                                        <option value="{{ file }}">{{ file }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Platform Spoofing -->
+                            <div>
+                                <label class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-3">
+                                    <i class="fas fa-mobile-alt mr-2 text-light-blue"></i>Platform Spoofing
+                                </label>
+                                <div class="grid grid-cols-3 gap-3">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="spoof_plat" value="0" checked class="sr-only peer">
+                                        <div class="p-3 rounded-lg dark:bg-blue-900/30 dark:border-2 dark:border-blue-700 dark:peer-checked:border-light-blue dark:peer-checked:bg-blue-800/50 light:bg-charcoal light:border-2 light:border-blue-800 light:peer-checked:border-light-blue light:peer-checked:bg-blue-900/50 text-center transition-all duration-300 shadow-sm">
+                                            <i class="fas fa-desktop block mb-1 dark:text-white light:text-blue-200"></i>
+                                            <span class="text-xs dark:text-blue-200 light:text-blue-300 font-medium">Desktop</span>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="spoof_plat" value="1" class="sr-only peer">
+                                        <div class="p-3 rounded-lg dark:bg-blue-900/30 dark:border-2 dark:border-blue-700 dark:peer-checked:border-light-blue dark:peer-checked:bg-blue-800/50 light:bg-charcoal light:border-2 light:border-blue-800 light:peer-checked:border-light-blue light:peer-checked:bg-blue-900/50 text-center transition-all duration-300 shadow-sm">
+                                            <i class="fas fa-camera block mb-1 dark:text-white light:text-blue-200"></i>
+                                            <span class="text-xs dark:text-blue-200 light:text-blue-300 font-medium">Camera</span>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="spoof_plat" value="2" class="sr-only peer">
+                                        <div class="p-3 rounded-lg dark:bg-blue-900/30 dark:border-2 dark:border-blue-700 dark:peer-checked:border-light-blue dark:peer-checked:bg-blue-800/50 light:bg-charcoal light:border-2 light:border-blue-800 light:peer-checked:border-light-blue light:peer-checked:bg-blue-900/50 text-center transition-all duration-300 shadow-sm">
+                                            <i class="fas fa-mobile-screen block mb-1 dark:text-white light:text-blue-200"></i>
+                                            <span class="text-xs dark:text-blue-200 light:text-blue-300 font-medium">Screen</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Spoofing Parameters (Hidden by default) -->
+                            <div id="spoofParamsContainer" class="hidden space-y-4 p-4 rounded-lg dark:bg-blue-900/20 light:bg-blue-900/30 shadow-inner">
+                                <h4 class="text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-3">Device Information</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <div>
+                                        <label for="openudid" class="block text-xs dark:text-blue-300 light:text-blue-400 mb-1">OpenUDID</label>
+                                        <div class="relative">
+                                            <input type="text" id="openudid" name="openudid"
+                                                   class="w-full px-3 py-2 rounded dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:text-white dark:placeholder-blue-400 light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:text-blue-200 light:placeholder-blue-500 border text-sm focus:ring-1 transition-all duration-300 shadow-sm">
+                                            <button type="button" id="generateDeviceLink" class="absolute right-2 top-2 dark:text-blue-400 light:text-blue-500 hover:dark:text-white hover:light:text-blue-200 text-xs">
+                                                <i class="fas fa-magic"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="device_id" class="block text-xs dark:text-blue-300 light:text-blue-400 mb-1">Device ID</label>
+                                        <input type="text" id="device_id" name="device_id"
+                                               class="w-full px-3 py-2 rounded dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:text-white dark:placeholder-blue-400 light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:text-blue-200 light:placeholder-blue-500 border text-sm focus:ring-1 transition-all duration-300 shadow-sm">
+                                    </div>
+                                    <div>
+                                        <label for="iid" class="block text-xs dark:text-blue-300 light:text-blue-400 mb-1">Install ID</label>
+                                        <input type="text" id="iid" name="iid"
+                                               class="w-full px-3 py-2 rounded dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:text-white dark:placeholder-blue-400 light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:text-blue-200 light:placeholder-blue-500 border text-sm focus:ring-1 transition-all duration-300 shadow-sm">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Options -->
+                            <div class="space-y-3">
+                                <h4 class="text-sm font-medium dark:text-blue-200 light:text-blue-300">Stream Options</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="gen_replay" name="gen_replay" class="rounded text-light-blue focus:ring-light-blue">
+                                        <span class="text-sm dark:text-blue-200 light:text-blue-300">Save Replay</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="close_room" name="close_room" checked class="rounded text-light-blue focus:ring-light-blue">
+                                        <span class="text-sm dark:text-blue-200 light:text-blue-300">Close on End</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="checkbox" id="age_restricted" name="age_restricted" class="rounded text-light-blue focus:ring-light-blue">
+                                        <span class="text-sm dark:text-blue-200 light:text-blue-300">Age Restricted</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Thumbnail -->
+                            <div>
+                                <label for="thumbnail" class="block text-sm font-medium dark:text-blue-200 light:text-blue-300 mb-2">
+                                    <i class="fas fa-image mr-2 text-light-blue"></i>Thumbnail Image
+                                </label>
+                                <div class="relative">
+                                    <input type="file" id="thumbnail" name="thumbnail" accept="image/*"
+                                           class="w-full px-4 py-3 rounded-lg dark:bg-blue-900/30 dark:border-blue-700 dark:focus:border-light-blue dark:focus:ring-light-blue/50 dark:text-white light:bg-charcoal light:border-blue-800 light:focus:border-light-blue light:focus:ring-light-blue/50 light:text-blue-200 border focus:ring-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-light-blue file:text-white hover:file:bg-blue-600 transition-all duration-300 shadow-sm">
+                                </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <button type="submit" class="w-full py-3 px-6 rounded-lg btn-gradient text-white font-semibold flex items-center justify-center space-x-2 shadow-lg">
+                                <i class="fas fa-rocket"></i>
+                                <span>Create Stream</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Instructions -->
+              <div class="stack fade-in" style="animation-delay: 0.2s;">
+                    <!-- Instructions Card -->
+                    <div class="glass rounded-2xl p-6 shadow-xl">
+                        <h3 class="text-xl font-bold mb-4 flex items-center dark:text-white light:text-blue-200">
+                            <i class="fas fa-info-circle mr-2 text-light-blue"></i>
+                            How to Use
+                        </h3>
+                        <ol class="space-y-3 dark:text-blue-200 light:text-blue-300">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-light-blue text-white flex items-center justify-center text-sm font-bold mr-3 shadow-sm">1</span>
+                                <span>Fill in the stream title and select a topic</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-light-blue text-white flex items-center justify-center text-sm font-bold mr-3 shadow-sm">2</span>
+                                <span>If you selected "Gaming", choose a game tag</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-light-blue text-white flex items-center justify-center text-sm font-bold mr-3 shadow-sm">3</span>
+                                <span>Select a cookies file (must be in JSON format)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-light-blue text-white flex items-center justify-center text-sm font-bold mr-3 shadow-sm">4</span>
+                                <span>Choose platform spoofing options if needed</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-light-blue text-white flex items-center justify-center text-sm font-bold mr-3 shadow-sm">5</span>
+                                <span>Upload a thumbnail image (optional)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-6 h-6 rounded-full bg-light-blue text-white flex items-center justify-center text-sm font-bold mr-3 shadow-sm">6</span>
+                                <span>Click "Create Stream" to generate your stream key</span>
+                            </li>
+                        </ol>
+                    </div>
+                    
+                    <!-- Tips Card -->
+                    <div class="glass rounded-2xl p-6 shadow-xl">
+                        <h3 class="text-xl font-bold mb-4 flex items-center dark:text-white light:text-blue-200">
+                            <i class="fas fa-lightbulb mr-2 text-yellow-400"></i>
+                            Pro Tips
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-400 mt-1 mr-3"></i>
+                                <p class="text-sm dark:text-blue-200 light:text-blue-300">Use a catchy title to attract more viewers</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-400 mt-1 mr-3"></i>
+                                <p class="text-sm dark:text-blue-200 light:text-blue-300">Choose the right topic for better discoverability</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-400 mt-1 mr-3"></i>
+                                <p class="text-sm dark:text-blue-200 light:text-blue-300">Test your connection before going live</p>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-400 mt-1 mr-3"></i>
+                                <p class="text-sm dark:text-blue-200 light:text-blue-300">Enable replay to save your stream for later viewing</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="/list_cookies" class="glass rounded-xl p-4 text-center hover:dark:bg-blue-900/30 hover:light:bg-blue-900/40 transition-all duration-300 shadow-sm">
+                            <i class="fas fa-folder-open text-2xl mb-2 text-light-blue"></i>
+                            <p class="text-sm dark:text-blue-200 light:text-blue-300 font-medium">View Cookies</p>
+                        </a>
+                        <a href="/streams" class="glass rounded-xl p-4 text-center hover:dark:bg-blue-900/30 hover:light:bg-blue-900/40 transition-all duration-300 shadow-sm">
+                            <i class="fas fa-list-ul text-2xl mb-2 text-tiktok"></i>
+                            <p class="text-sm dark:text-blue-200 light:text-blue-300 font-medium">My Streams</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 glass rounded-lg p-4 shadow-xl transform translate-y-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-3">
+            <i id="toastIcon" class="fas fa-check-circle text-green-400 text-xl"></i>
+            <p id="toastMessage" class="text-sm dark:text-white light:text-blue-200"></p>
+        </div>
+    </div>
+    
+    
+    <script>
+        // Dark mode functionality with localStorage persistence
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved user preference or default to dark mode
+        const currentMode = localStorage.getItem('darkMode') || 'dark';
+        if (currentMode === 'dark') {
+            htmlElement.classList.add('dark');
+            htmlElement.classList.remove('light');
+            darkModeIcon.classList.remove('fa-sun');
+            darkModeIcon.classList.add('fa-moon');
+        } else {
+            htmlElement.classList.remove('dark');
+            htmlElement.classList.add('light');
+            darkModeIcon.classList.remove('fa-moon');
+            darkModeIcon.classList.add('fa-sun');
+        }
+        
+        // Toggle dark mode
+        darkModeToggle.addEventListener('click', function() {
+            if (htmlElement.classList.contains('dark')) {
+                htmlElement.classList.remove('dark');
+                htmlElement.classList.add('light');
+                darkModeIcon.classList.remove('fa-moon');
+                darkModeIcon.classList.add('fa-sun');
+                localStorage.setItem('darkMode', 'light');
+            } else {
+                htmlElement.classList.remove('light');
+                htmlElement.classList.add('dark');
+                darkModeIcon.classList.remove('fa-sun');
+                darkModeIcon.classList.add('fa-moon');
+                localStorage.setItem('darkMode', 'dark');
+            }
+        });
+        
+        // Show/hide game tag based on topic selection
+        const topicSelect = document.getElementById('topic');
+        const gameTagContainer = document.getElementById('gameTagContainer');
+        
+        topicSelect.addEventListener('change', function() {
+            if (this.value === '5') { // Gaming topic
+                gameTagContainer.classList.remove('hidden');
+                gameTagContainer.classList.add('fade-in');
+            } else {
+                gameTagContainer.classList.add('hidden');
+            }
+        });
+        
+        // Show/hide spoofing parameters based on platform selection
+        const spoofPlatRadios = document.querySelectorAll('input[name="spoof_plat"]');
+        const spoofParamsContainer = document.getElementById('spoofParamsContainer');
+        
+        spoofPlatRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === '1' || this.value === '2') {
+                    spoofParamsContainer.classList.remove('hidden');
+                    spoofParamsContainer.classList.add('fade-in');
+                } else {
+                    spoofParamsContainer.classList.add('hidden');
+                }
+            });
+        });
+        
+        // Generate random title
+        const randomTitleLink = document.getElementById('randomTitleLink');
+        const titleInput = document.getElementById('title');
+        
+        randomTitleLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            fetch('/random_title')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.title) {
+                        titleInput.value = data.title;
+                        showToast('Random title generated!', 'success');
+                    } else {
+                        showToast('Failed to generate title: ' + (data.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Failed to generate title', 'error');
+                });
+        });
+        
+        // Generate device info
+        const generateDeviceLink = document.getElementById('generateDeviceLink');
+        const openudidInput = document.getElementById('openudid');
+        const deviceIdInput = document.getElementById('device_id');
+        const iidInput = document.getElementById('iid');
+        
+        generateDeviceLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            fetch('/generate_device')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.openudid) {
+                        openudidInput.value = data.openudid;
+                        deviceIdInput.value = data.device_id;
+                        iidInput.value = data.iid;
+                        showToast('Device info generated!', 'success');
+                    } else {
+                        showToast('Failed to generate device info: ' + (data.error || 'Unknown error'), 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showToast('Failed to generate device info', 'error');
+                });
+        });
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMessage.textContent = message;
+            
+            // Update icon based on type
+            toastIcon.className = type === 'success' 
+                ? 'fas fa-check-circle text-green-400 text-xl' 
+                : 'fas fa-exclamation-circle text-red-400 text-xl';
+            
+            // Show toast
+            toast.classList.remove('translate-y-full');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+            }, 3000);
+        }
+    </script>
+</body>
+<!-- Footer -->
+<footer class="glass fixed bottom-0 left-0 right-0 border-t dark:border-blue-700/30 light:border-blue-800/30 transition-all duration-300 z-40">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+            <p class="dark:text-blue-300 light:text-blue-400 text-sm">© {{ now.year }} TikTok Stream Key Generator</p>
+            <div class="flex space-x-4 mt-2 md:mt-0">
+                <a href="#" class="dark:text-blue-300 light:text-blue-400 hover:dark:text-white hover:light:text-blue-200 transition-colors">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="dark:text-blue-300 light:text-blue-400 hover:dark:text-white hover:light:text-blue-200 transition-colors">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="dark:text-blue-300 light:text-blue-400 hover:dark:text-white hover:light:text-blue-200 transition-colors">
+                    <i class="fab fa-discord"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+</html>

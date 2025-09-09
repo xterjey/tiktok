@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Created - TikTok Stream Key Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'tiktok': '#FE2C55',
+                        'dark-blue': '#0a0e27',
+                        'medium-blue': '#1a237e',
+                        'light-blue': '#3b82f6',
+                        'deep-blue': '#0d47a1',
+                        'navy-blue': '#000051',
+                        'charcoal': '#121212',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e27;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a237e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b82f6;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Glass effect */
+        .glass {
+            background: rgba(10, 14, 39, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 80, 0.37);
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #FE2C55);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        /* Success animation */
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+        }
+        
+        .success-checkmark__circle {
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            stroke-width: 2;
+            stroke-miterlimit: 10;
+            stroke: #4ade80;
+            fill: none;
+            animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        
+        .success-checkmark__check {
+            transform-origin: 50% 50%;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+        
+        @keyframes stroke {
+            100% {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        /* Button hover effect */
+        .btn-gradient {
+            background: linear-gradient(135deg, #1a237e, #3b82f6);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #3b82f6, #FE2C55);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-dark-blue via-medium-blue to-navy-blue min-h-screen text-white transition-all duration-500">
+    <!-- Background Pattern -->
+    <div class="fixed inset-0 opacity-10">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');"></div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50 border-b border-blue-500/20 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-light-blue to-tiktok flex items-center justify-center shadow-lg">
+                        <i class="fas fa-broadcast-tower text-white"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold gradient-text">TikTok Stream Generator</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/streams" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300 flex items-center space-x-2 shadow-sm">
+                        <i class="fas fa-list"></i>
+                        <span>My Streams</span>
+                    </a>
+                    <button id="darkModeToggle" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-sm">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8 relative z-10">
+        <div class="max-w-4xl mx-auto">
+            <!-- Success Header -->
+            <div class="text-center mb-8 fade-in">
+                <div class="success-checkmark mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" class="success-checkmark__circle">
+                        <circle cx="26" cy="26" r="25" fill="none"/>
+                        <path fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" class="success-checkmark__check"/>
+                    </svg>
+                </div>
+                <h2 class="text-4xl font-bold mb-2">Stream Created Successfully!</h2>
+                <p class="text-xl text-blue-200">Your TikTok stream is ready to go live</p>
+            </div>
+            
+            <!-- Stream Info Card -->
+            <div class="glass rounded-2xl p-8 shadow-2xl mb-8 fade-in" style="animation-delay: 0.2s">
+                <div class="mb-6">
+                    <h3 class="text-2xl font-bold mb-2 flex items-center">
+                        <i class="fas fa-video mr-3 text-tiktok"></i>
+                        {{ title }}
+                    </h3>
+                    <div class="flex items-center text-blue-300 text-sm">
+                        <i class="fas fa-clock mr-2"></i>
+                        <span>Created just now</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <!-- Server URL -->
+                    <div>
+                        <label class="block text-sm font-medium text-blue-200 mb-2">
+                            <i class="fas fa-server mr-2 text-light-blue"></i>Server URL
+                        </label>
+                        <div class="relative group">
+                            <input type="text" id="serverUrl" value="{{ baseStreamUrl }}" readonly
+                                   class="w-full px-4 py-3 rounded-lg bg-blue-900/30 border border-blue-700 text-white font-mono text-sm pr-12 shadow-sm">
+                            <button onclick="copyToClipboard('serverUrl', 'Server URL')" 
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded text-blue-400 hover:text-white transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Stream Key -->
+                    <div>
+                        <label class="block text-sm font-medium text-blue-200 mb-2">
+                            <i class="fas fa-key mr-2 text-light-blue"></i>Stream Key
+                        </label>
+                        <div class="relative group">
+                            <input type="text" id="streamKey" value="{{ streamKey }}" readonly
+                                   class="w-full px-4 py-3 rounded-lg bg-blue-900/30 border border-blue-700 text-white font-mono text-sm pr-12 shadow-sm">
+                            <button onclick="copyToClipboard('streamKey', 'Stream Key')" 
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded text-blue-400 hover:text-white transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Share URL -->
+                    <div>
+                        <label class="block text-sm font-medium text-blue-200 mb-2">
+                            <i class="fas fa-share-alt mr-2 text-light-blue"></i>Share URL
+                        </label>
+                        <div class="relative group">
+                            <input type="text" id="shareUrl" value="{{ streamShareUrl }}" readonly
+                                   class="w-full px-4 py-3 rounded-lg bg-blue-900/30 border border-blue-700 text-white font-mono text-sm pr-12 shadow-sm">
+                            <button onclick="copyToClipboard('shareUrl', 'Share URL')" 
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded text-blue-400 hover:text-white transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Full RTMP URL -->
+                    <div>
+                        <label class="block text-sm font-medium text-blue-200 mb-2">
+                            <i class="fas fa-link mr-2 text-light-blue"></i>Full RTMP URL
+                        </label>
+                        <div class="relative group">
+                            <input type="text" id="fullRtmpUrl" value="{{ baseStreamUrl }}/{{ streamKey }}" readonly
+                                   class="w-full px-4 py-3 rounded-lg bg-blue-900/30 border border-blue-700 text-white font-mono text-sm pr-12 shadow-sm">
+                            <button onclick="copyToClipboard('fullRtmpUrl', 'Full RTMP URL')" 
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded text-blue-400 hover:text-white transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 fade-in" style="animation-delay: 0.4s">
+                <a href="/streams" class="glass rounded-xl p-4 text-center hover:bg-blue-900/30 transition-all duration-300 group shadow-sm">
+                    <i class="fas fa-list-ul text-2xl mb-2 text-light-blue group-hover:scale-110 transition-transform"></i>
+                    <p class="font-medium text-blue-200">View All Streams</p>
+                </a>
+                <a href="/" class="glass rounded-xl p-4 text-center hover:bg-blue-900/30 transition-all duration-300 group shadow-sm">
+                    <i class="fas fa-plus-circle text-2xl mb-2 text-tiktok group-hover:scale-110 transition-transform"></i>
+                    <p class="font-medium text-blue-200">Create New Stream</p>
+                </a>
+                <button onclick="window.open('{{ streamShareUrl }}', '_blank')" 
+                        class="glass rounded-xl p-4 text-center hover:bg-blue-900/30 transition-all duration-300 group shadow-sm">
+                    <i class="fas fa-external-link-alt text-2xl mb-2 text-green-400 group-hover:scale-110 transition-transform"></i>
+                    <p class="font-medium text-blue-200">Open Stream</p>
+                </button>
+            </div>
+            
+            <!-- Instructions Card -->
+            <div class="glass rounded-2xl p-6 shadow-xl fade-in" style="animation-delay: 0.6s">
+                <h3 class="text-xl font-bold mb-4 flex items-center text-white">
+                    <i class="fas fa-book-open mr-2 text-light-blue"></i>
+                    How to Use This Information
+                </h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-3 text-light-blue">For OBS Studio:</h4>
+                        <ol class="space-y-2 text-blue-200 text-sm">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-light-blue/20 text-light-blue flex items-center justify-center text-xs mr-2">1</span>
+                                Go to Settings > Stream
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-light-blue/20 text-light-blue flex items-center justify-center text-xs mr-2">2</span>
+                                Service: Custom
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-light-blue/20 text-light-blue flex items-center justify-center text-xs mr-2">3</span>
+                                Server: Paste RTMP URL
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-light-blue/20 text-light-blue flex items-center justify-center text-xs mr-2">4</span>
+                                Stream Key: Paste Stream Key
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-light-blue/20 text-light-blue flex items-center justify-center text-xs mr-2">5</span>
+                                Click Apply and OK
+                            </li>
+                        </ol>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-3 text-tiktok">For Streamlabs:</h4>
+                        <ol class="space-y-2 text-blue-200 text-sm">
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-tiktok/20 text-tiktok flex items-center justify-center text-xs mr-2">1</span>
+                                Go to Settings > Stream
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-tiktok/20 text-tiktok flex items-center justify-center text-xs mr-2">2</span>
+                                Platform: TikTok
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-tiktok/20 text-tiktok flex items-center justify-center text-xs mr-2">3</span>
+                                Or select "Custom RTMP"
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-tiktok/20 text-tiktok flex items-center justify-center text-xs mr-2">4</span>
+                                Paste RTMP URL and Stream Key
+                            </li>
+                            <li class="flex items-start">
+                                <span class="flex-shrink-0 w-5 h-5 rounded-full bg-tiktok/20 text-tiktok flex items-center justify-center text-xs mr-2">5</span>
+                                Click Done
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- End Stream Button -->
+            <div class="text-center mt-8 fade-in" style="animation-delay: 0.8s">
+                <form action="/end_stream" method="post" class="inline-block">
+                    <button type="submit" class="px-8 py-3 rounded-lg bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 hover:to-red-500 text-white font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center space-x-2 shadow-lg">
+                        <i class="fas fa-stop-circle"></i>
+                        <span>End Current Stream</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 glass rounded-lg p-4 shadow-xl transform translate-y-full transition-transform duration-300 z-50">
+        <div class="flex items-center space-x-3">
+            <i id="toastIcon" class="fas fa-check-circle text-green-400 text-xl"></i>
+            <p id="toastMessage" class="text-sm text-white"></p>
+        </div>
+    </div>
+    
+    <script>
+        // Copy to clipboard functionality
+        function copyToClipboard(elementId, type) {
+            const element = document.getElementById(elementId);
+            
+            // Modern browsers
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(element.value).then(() => {
+                    showToast(`${type} copied to clipboard!`, 'success');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                    // Fallback
+                    fallbackCopyTextToClipboard(element.value, type);
+                });
+            } else {
+                // Fallback for older browsers
+                fallbackCopyTextToClipboard(element.value, type);
+            }
+        }
+        
+        // Fallback copy method
+        function fallbackCopyTextToClipboard(text, type) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast(`${type} copied to clipboard!`, 'success');
+                } else {
+                    showToast('Failed to copy', 'error');
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+                showToast('Failed to copy', 'error');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toastMessage.textContent = message;
+            
+            // Update icon based on type
+            toastIcon.className = type === 'success' 
+                ? 'fas fa-check-circle text-green-400 text-xl' 
+                : 'fas fa-exclamation-circle text-red-400 text-xl';
+            
+            // Show toast
+            toast.classList.remove('translate-y-full');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+            }, 3000);
+        }
+        
+        // Dark mode toggle (for future implementation)
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        darkModeToggle.addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+        });
+    </script>
+</body>
+</html>
